@@ -37,24 +37,24 @@ public class TestsL5 {
     private String baseURL;
     private String loginPageURL;
     private LoginPage loginPage;
+    String encodedPassword = "password";
 
     @BeforeEach
     public void setup(){
         baseURL = "http://localhost:" + port;
         loginPageURL = baseURL + "/login";
-        loginPage = new LoginPage();
-        loginPage.setLoginPage(loginPageURL);
         loginSteps = new LoginSteps();
+
         userService = new UserService();
-        User user = new User("username", "email", "password");
+        User user = new User("username", "email", encodedPassword);
         userService.saveUser(user);
     }
 
     @Test
     public void shouldLoginSuccessfully() {
         loginSteps.openLoginPage();
-        loginSteps.enterUsername("validUser");
-        loginSteps.enterPassword("validPassword");
+        loginSteps.enterUsername("username");
+        loginSteps.enterPassword("password");
         loginSteps.clickLoginButton();
     }
 
@@ -62,7 +62,7 @@ public class TestsL5 {
     public void shouldFailToLogin() {
         loginSteps.openLoginPage();
         loginSteps.enterUsername("invalidUser");
-        loginSteps.enterPassword("validPassword");
+        loginSteps.enterPassword("password");
         loginSteps.clickLoginButton();
 
         String errorMessage = loginSteps.getErrorMessage();

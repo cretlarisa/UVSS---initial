@@ -6,9 +6,7 @@ public class LoginSteps {
     LoginPage loginPage = new LoginPage();
 
     @Step("Open the login page")
-    public void openLoginPage() {
-        loginPage.openLoginPage();
-    }
+    public void openLoginPage() {loginPage.openLoginPage();}
 
     @Step("Enter username {0}")
     public void enterUsername(String username) {
