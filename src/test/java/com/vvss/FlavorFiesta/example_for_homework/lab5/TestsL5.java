@@ -2,70 +2,70 @@ package com.vvss.FlavorFiesta.example_for_homework.lab5;
 
 import com.vvss.FlavorFiesta.models.User;
 import com.vvss.FlavorFiesta.services.UserService;
-import net.serenitybdd.junit.runners.SerenityRunner;
+import net.serenitybdd.annotations.Steps;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import net.serenitybdd.junit5.SerenityJUnit5Extension;
-import net.thucydides.core.annotations.Steps;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
+@RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application-test.properties")
-@RunWith(SpringIntegrationSerenityRunner.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestsL5 {
     @Steps
-    LoginSteps loginSteps;
+    LoginPage loginPageAndSteps;
+
+    @Autowired
     private UserService userService;
-    @LocalServerPort
-    private int port;
-    private String baseURL;
-    private String loginPageURL;
-    private LoginPage loginPage;
+
     String encodedPassword = "password";
 
-    @BeforeEach
-    public void setup(){
-        baseURL = "http://localhost:" + port;
-        loginPageURL = baseURL + "/login";
-        loginSteps = new LoginSteps();
+    User testUser;
 
-        userService = new UserService();
-        User user = new User("username", "email", encodedPassword);
-        userService.saveUser(user);
+    @BeforeEach
+    void setup(){
+        testUser = new User("username", "email", encodedPassword);
+        userService.saveUser(testUser);
+    }
+
+    @AfterAll
+    public void teardown(){
+        userService.getAllUsers().forEach(userService::saveUser);
     }
 
     @Test
     public void shouldLoginSuccessfully() {
-        loginSteps.openLoginPage();
-        loginSteps.enterUsername("username");
-        loginSteps.enterPassword("password");
-        loginSteps.clickLoginButton();
+        loginPageAndSteps.openLoginPage();
+        loginPageAndSteps.enterUsername(testUser.getUsername());
+        loginPageAndSteps.enterPassword(testUser.getPassword());
+        loginPageAndSteps.clickLoginButton();
+        assertTrue(loginPageAndSteps.showLogoutButton());
     }
 
     @Test
     public void shouldFailToLogin() {
-        loginSteps.openLoginPage();
-        loginSteps.enterUsername("invalidUser");
-        loginSteps.enterPassword("password");
-        loginSteps.clickLoginButton();
+        loginPageAndSteps.openLoginPage();
+        loginPageAndSteps.enterUsername("invalidUser");
+        loginPageAndSteps.enterPassword("invalidPassword");
+        loginPageAndSteps.clickLoginButton();
 
-        String errorMessage = loginSteps.getErrorMessage();
-        assertThat(errorMessage).isEqualTo("Invalid username");
+        String errorMessage = loginPageAndSteps.getErrorMessage();
+        assertThat(errorMessage).isEqualTo("Invalid username and password");
     }
 }
